@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>CEO Videos (Round 2 finals) — Timestamped Comments</title>
+<style>
+  :root {
+    --bg: #faf7f2;
+    --card: #ffffff;
+    --ink: #1a1a1a;
+    --muted: #666;
+    --accent: #2a5d84;
+    --accent-dim: #dbe6ef;
+    --border: #e2ddd3;
+    --ok: #2f7a3f;
+    --pending: #a0660a;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--bg);
+    color: var(--ink);
+    margin: 0; padding: 24px;
+    max-width: 1400px; margin: 0 auto;
+  }
+  h1 { font-size: 24px; font-weight: 700; margin: 0 0 8px 0; }
+  .subtitle { color: var(--muted); font-size: 14px; margin-bottom: 24px; }
+  .reviewer-bar {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--card); padding: 12px 16px;
+    border: 1px solid var(--border); border-radius: 8px;
+    margin-bottom: 20px;
+  }
+  .reviewer-bar label { font-weight: 600; }
+  .reviewer-bar select, .reviewer-bar button {
+    font-family: inherit; font-size: 14px;
+    padding: 6px 12px; border: 1px solid var(--border); border-radius: 4px;
+    background: white;
+  }
+  .reviewer-bar button { cursor: pointer; background: var(--accent); color: white; border-color: var(--accent); }
+  .reviewer-bar button:hover { opacity: 0.9; }
+  .video-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 8px; padding: 20px; margin-bottom: 20px;
+  }
+  .video-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 12px;
+  }
+  .video-title { font-size: 18px; font-weight: 700; margin: 0; }
+  .status-badge {
+    font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 12px;
+  }
+  .status-pending { background: #fdf3e0; color: var(--pending); }
+  .status-done { background: #e4f1e7; color: var(--ok); }
+  .video-layout {
+    display: grid; grid-template-columns: 3fr 2fr; gap: 20px;
+    margin-bottom: 16px;
+  }
+  video { width: 100%; background: #000; border-radius: 4px; display: block; }
+  .transcript-panel {
+    display: flex; flex-direction: column;
+    background: #f5f0e5; border: 1px solid var(--border); border-radius: 4px;
+    max-height: 400px; overflow: hidden;
+  }
+  .transcript-header {
+    padding: 8px 12px; font-size: 12px; font-weight: 600; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--border); background: rgba(255,255,255,0.4);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .transcript-body {
+    overflow-y: auto; padding: 8px 12px; font-size: 13px; line-height: 1.5;
+    flex: 1;
+  }
+  .transcript-line {
+    padding: 4px 0; cursor: pointer; display: flex; gap: 10px;
+    border-bottom: 1px dotted #e6e0d0;
+  }
+  .transcript-line:hover { background: #fff8e8; }
+  .transcript-line.active { background: #fff4d0; }
+  .transcript-line-ts {
+    font-family: 'Consolas', monospace; font-size: 11px; color: var(--accent);
+    font-weight: 600; min-width: 46px; padding-top: 1px;
+  }
+  .transcript-line-text { flex: 1; }
+  .transcript-empty {
+    padding: 20px; text-align: center; color: var(--muted); font-style: italic;
+    font-size: 13px;
+  }
+  .comment-panel {
+    display: flex; flex-direction: column; gap: 10px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+  }
+  .timestamp-capture {
+    display: flex; gap: 8px; align-items: center;
+  }
+  .timestamp-display {
+    font-family: 'Consolas', monospace; font-size: 14px;
+    background: var(--accent-dim); padding: 6px 10px; border-radius: 4px;
+    color: var(--accent); font-weight: 600;
+  }
+  .capture-btn {
+    padding: 6px 14px; font-family: inherit; font-size: 14px;
+    background: var(--accent); color: white; border: none; border-radius: 4px;
+    cursor: pointer;
+  }
+  .capture-btn:hover { opacity: 0.9; }
+  textarea {
+    font-family: Georgia, serif; font-size: 14px;
+    padding: 10px; border: 1px solid var(--border); border-radius: 4px;
+    resize: vertical; min-height: 80px; width: 100%;
+  }
+  .save-btn {
+    padding: 8px 16px; font-family: inherit; font-size: 14px;
+    background: var(--ok); color: white; border: none; border-radius: 4px;
+    cursor: pointer; align-self: flex-start;
+  }
+  .save-btn:hover { opacity: 0.9; }
+  .save-btn:disabled { background: #ccc; cursor: not-allowed; }
+  .comments-list {
+    margin-top: 12px;
+  }
+  .comments-list h4 {
+    margin: 0 0 8px 0; font-size: 13px; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .comment-item {
+    display: flex; gap: 12px; padding: 8px 0;
+    border-bottom: 1px solid #f0ebe0;
+  }
+  .comment-item:last-child { border-bottom: none; }
+  .comment-ts {
+    font-family: 'Consolas', monospace; font-size: 12px;
+    color: var(--accent); font-weight: 600; min-width: 56px;
+    cursor: pointer; text-decoration: underline;
+  }
+  .comment-meta {
+    font-size: 11px; color: var(--muted);
+  }
+  .comment-body { flex: 1; font-size: 14px; line-height: 1.5; }
+  .comment-delete {
+    background: none; border: none; color: var(--muted); cursor: pointer;
+    font-size: 12px; padding: 2px 6px;
+  }
+  .comment-delete:hover { color: #c0392b; }
+  .dropbox-link {
+    font-size: 12px; color: var(--muted); margin-top: 4px;
+  }
+  .dropbox-link a { color: var(--accent); }
+  .file-protocol-warning {
+    background: #fff4d0; border: 1px solid #e0c88a; color: #7a5a00;
+    padding: 10px 14px; border-radius: 6px; font-size: 13px;
+    margin-bottom: 16px;
+  }
+  .file-protocol-warning code { background: rgba(0,0,0,0.08); padding: 1px 5px; border-radius: 3px; }
+  @media (max-width: 1000px) {
+    .video-layout { grid-template-columns: 1fr; }
+    .transcript-panel { max-height: 300px; }
+  }
+</style>
+</head>
+<body>
+
+<h1>CEO Videos (Round 2 finals) — Timestamped Comments</h1>
+<p class="subtitle">Contra Costa County civic education videos. Click <em>Capture current time</em> while the video plays, type a comment, and save. Transcripts, if present in the <code>transcripts/</code> folder, appear alongside each video and are clickable.</p>
+
+<div id="file-protocol-warning" class="file-protocol-warning" style="display: none;">
+  <strong>Transcripts won't auto-load.</strong> You opened this file directly, so the browser won't read sibling files. To enable transcript loading, open a terminal in <code>~/Dropbox/Claude/CEO-videos-review-2/</code> and run <code>python serve.py</code> — then use the URL it prints.
+</div>
+
+<div class="reviewer-bar">
+  <label for="reviewer-name">Reviewing as:</label>
+  <select id="reviewer-name">
+    <option value="Susan">Susan</option>
+    <option value="Jennie">Jennie</option>
+    <option value="Dawn">Dawn</option>
+    <option value="Oren">Oren</option>
+  </select>
+  <button id="refresh-btn" title="Pull latest comments from the shared sheet">Refresh</button>
+  <button id="export-btn">Export all comments</button>
+  <button id="export-json-btn">Export JSON</button>
+  <button id="import-json-btn">Import JSON</button>
+  <input type="file" id="import-file-input" accept=".json" style="display: none;">
+  <button id="clear-btn" style="background: #b85450; border-color: #b85450;">Clear all</button>
+  <span id="total-count" style="color: var(--muted); font-size: 13px; margin-left: auto;"></span>
+</div>
+
+<div id="videos-container"></div>
+
+<script>
+// =========== VIDEO DATA ===========
+function toStreamUrl(shareUrl) {
+  return shareUrl.replace(/[?&]dl=\d/, m => m[0] + 'raw=1');
+}
+
+// ROUND 2 lineup. Source files live in Dropbox at
+//   Certified Election Observer Series/Finals/Finals/   (Set B, the edited finals)
+//   ...except Video 5, which comes from Certified Election Observer Series/Finals/ (Set A, March).
+// TO GO LIVE: right-click each source file in Dropbox -> Copy link, paste as dropboxUrl below.
+const VIDEOS = [
+  { id: 1, title: 'Video 1 — Registration', dropboxUrl: 'https://www.dropbox.com/scl/fi/bcs88by6ryqe4eel7en6y/CEO-Video-1-Registration-FNL.mp4?rlkey=ce0okypzuy4qd56a4ebghs2bh&dl=0' }, // Set B: CEO Video 1 Registration FNL.mp4
+  { id: 2, title: 'Video 2 — L&A (Logic and Accuracy Testing)', dropboxUrl: 'https://www.dropbox.com/scl/fi/iddmr9fmy2a3ch7zcqgjy/CEO-Video-2-LnA-FNL.mp4?rlkey=fty7n4lvhjjjykfuutz51y1jo&dl=0' }, // Set B: CEO Video 2 LnA FNL.mp4
+  { id: 3, title: 'Video 3 — Tour', dropboxUrl: 'https://www.dropbox.com/scl/fi/3m9mrmazrk5x6mp5g55cf/CEO-Video-3-Tour-FNL.mp4?rlkey=289aybak6129gjm0an6ohhh7f&dl=0' }, // Set B: CEO Video 3 Tour FNL.mp4
+  { id: 4, title: 'Video 4 — Poll Worker Training & In-Person Voting', dropboxUrl: null }, // Set B: CEO Video 4 PollWorkerTraining_InPerson Voting.mp4
+  { id: 5, title: 'Video 5 — Ballot Collection (March cut; edited version pending)', dropboxUrl: null }, // Set A: CEO Video 5 Ballot Collection FNL.mp4
+  { id: 6, title: 'Video 6 — Vote By Mail Scanning', dropboxUrl: 'https://www.dropbox.com/scl/fi/1e04v9c6osa9qa3p3ebtd/CEO-Video-6-VoteByMail-Scanning-FNL.mp4?rlkey=hfdqwgonfmmdu3l3wn1acywk9&dl=0' }, // Set B: CEO Video 6 VoteByMail Scanning FNL.mp4
+  { id: 7, title: 'Video 7 — Signature Check', dropboxUrl: null },              // Set B: CEO Video 7 Signature Check FNL.mp4
+  { id: 8, title: 'Video 8 — Extraction', dropboxUrl: 'https://www.dropbox.com/scl/fi/4lbdm0l0zhpyfwxgclrv0/CEO-Video-8-Extraction-FNL.mp4?rlkey=2flqlk7s1sg3okr2ih46i292m&dl=0' }, // Set B: CEO Video 8 Extraction FNL.mp4
+  { id: 9, title: 'Video 9 — Tabulation', dropboxUrl: 'https://www.dropbox.com/scl/fi/rp29fz3hfxsatwwxuhx29/CEO-Video-9-Tabulation-FNL.mp4?rlkey=8ozbkl076xkaijgz3o2t5juct&dl=0' }, // Set B: CEO Video 9 Tabulation FNL.mp4
+  { id: 11, title: 'Video 11 — Canvass (music only)', dropboxUrl: 'https://www.dropbox.com/scl/fi/trg6qswiwu2jp8wc58vbt/CEO-Video-11-FNL.mp4?rlkey=ifwxkeg221tektjasu90q5tz0&dl=0' }, // Set B: CEO Video 11 FNL.mp4
+  { id: 12, title: 'Video 11 — Canvass (with voiceover)', dropboxUrl: 'https://www.dropbox.com/scl/fi/xa3cfei5ay7bv9p2r39ia/CEO-Video-11-FNL-w-VO.mp4?rlkey=k2ly9gfml8glg9hcmwydsldjr&dl=0' }, // Set B: CEO Video 11 FNL w VO.mp4
+];
+
+// =========== STORAGE ===========
+// Set WEBAPP_URL after deploying the Apps Script web app.
+// While empty, the page falls back to browser localStorage (no sharing).
+// ROUND 2: deploy a NEW Apps Script web app against a NEW Google Sheet so round-2
+// comments stay separate from round 1, then paste its /exec URL here. While empty,
+// the page falls back to browser localStorage (no sharing across reviewers).
+const WEBAPP_URL = '';
+const USE_SHEETS = !!WEBAPP_URL;
+const STORAGE_KEY = 'ceo_video_comments_v2';
+
+// cachedComments: { [videoId]: [comment, ...] } — source of truth for render.
+// Populated on init (from sheet or localStorage) and kept in sync after add/delete.
+let cachedComments = {};
+
+function loadComments() { return cachedComments; }
+function getVideoComments(videoId) {
+  return (cachedComments[videoId] || []).sort((a, b) => a.timestamp - b.timestamp);
+}
+
+async function initStorage() {
+  if (USE_SHEETS) {
+    try {
+      const r = await fetch(WEBAPP_URL);
+      const data = await r.json();
+      const grouped = {};
+      for (const c of (data.comments || [])) {
+        if (!grouped[c.videoId]) grouped[c.videoId] = [];
+        grouped[c.videoId].push(c);
+      }
+      cachedComments = grouped;
+    } catch (e) {
+      console.error('Failed to fetch comments from sheet, falling back to empty:', e);
+      cachedComments = {};
+    }
+  } else {
+    try { cachedComments = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); }
+    catch (e) { cachedComments = {}; }
+  }
+}
+
+async function refreshFromServer() {
+  if (!USE_SHEETS) return;
+  await initStorage();
+  VIDEOS.forEach(v => { if (v.dropboxUrl) renderComments(v.id); });
+}
+
+async function addComment(videoId, comment) {
+  const c = { ...comment, videoId };
+  if (USE_SHEETS) {
+    try {
+      await fetch(WEBAPP_URL, { method: 'POST', body: JSON.stringify({ action: 'add', comment: c }) });
+    } catch (e) { console.error('sheet add failed:', e); }
+  } else {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...cachedComments, [videoId]: [...(cachedComments[videoId]||[]), c] }));
+  }
+  if (!cachedComments[videoId]) cachedComments[videoId] = [];
+  cachedComments[videoId].push(c);
+}
+
+async function deleteComment(videoId, commentId) {
+  if (USE_SHEETS) {
+    try {
+      await fetch(WEBAPP_URL, { method: 'POST', body: JSON.stringify({ action: 'delete', id: commentId }) });
+    } catch (e) { console.error('sheet delete failed:', e); }
+  }
+  if (cachedComments[videoId]) {
+    cachedComments[videoId] = cachedComments[videoId].filter(c => c.id !== commentId);
+  }
+  if (!USE_SHEETS) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(cachedComments));
+  }
+}
+
+async function bulkAddComments(importedByVideo) {
+  // importedByVideo: { [videoId]: [comment, ...] }
+  if (USE_SHEETS) {
+    const all = [];
+    for (const [vid, arr] of Object.entries(importedByVideo)) {
+      for (const c of arr) all.push({ ...c, videoId: vid });
+    }
+    try {
+      await fetch(WEBAPP_URL, { method: 'POST', body: JSON.stringify({ action: 'bulk_add', comments: all }) });
+    } catch (e) { console.error('sheet bulk_add failed:', e); }
+  }
+  for (const [vid, arr] of Object.entries(importedByVideo)) {
+    if (!cachedComments[vid]) cachedComments[vid] = [];
+    const existingIds = new Set(cachedComments[vid].map(c => c.id));
+    for (const c of arr) {
+      if (!existingIds.has(c.id)) cachedComments[vid].push(c);
+    }
+  }
+  if (!USE_SHEETS) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(cachedComments));
+  }
+}
+
+// =========== SRT / VTT PARSER ===========
+function parseSrtVtt(text) {
+  // Normalize line endings
+  text = text.replace(/\r\n/g, '\n').trim();
+  // Strip VTT header
+  text = text.replace(/^WEBVTT.*?\n\n/s, '');
+  const blocks = text.split(/\n\s*\n/);
+  const cues = [];
+  const tsRe = /(\d{1,2}):(\d{2}):(\d{2})[,\.](\d{3})\s*-->\s*(\d{1,2}):(\d{2}):(\d{2})[,\.](\d{3})/;
+  for (const block of blocks) {
+    const lines = block.split('\n').filter(l => l.trim());
+    if (!lines.length) continue;
+    // First line may be an index; find the timestamp line
+    let tsLineIdx = lines.findIndex(l => tsRe.test(l));
+    if (tsLineIdx === -1) continue;
+    const m = lines[tsLineIdx].match(tsRe);
+    const start = (+m[1]) * 3600 + (+m[2]) * 60 + (+m[3]) + (+m[4]) / 1000;
+    const end = (+m[5]) * 3600 + (+m[6]) * 60 + (+m[7]) + (+m[8]) / 1000;
+    const textLines = lines.slice(tsLineIdx + 1).join(' ');
+    cues.push({ start, end, text: textLines });
+  }
+  return cues;
+}
+
+// =========== TRANSCRIPT LOADING ===========
+const transcriptCache = {};
+
+async function loadTranscript(videoId) {
+  if (transcriptCache[videoId] !== undefined) return transcriptCache[videoId];
+  const tryExts = ['srt', 'vtt', 'txt'];
+  for (const ext of tryExts) {
+    try {
+      const resp = await fetch(`transcripts/video-${videoId}.${ext}`);
+      if (!resp.ok) continue;
+      const text = await resp.text();
+      if (ext === 'txt') {
+        transcriptCache[videoId] = { type: 'plain', text };
+      } else {
+        transcriptCache[videoId] = { type: 'cued', cues: parseSrtVtt(text) };
+      }
+      return transcriptCache[videoId];
+    } catch (e) { /* keep trying */ }
+  }
+  transcriptCache[videoId] = null;
+  return null;
+}
+
+function renderTranscript(videoId, transcript) {
+  const container = document.getElementById(`transcript-${videoId}`);
+  if (!container) return;
+  if (!transcript) {
+    container.innerHTML = '<div class="transcript-empty">No transcript yet. Drop a file named <code>transcripts/video-' + videoId + '.srt</code> (or .vtt / .txt) to load one.</div>';
+    return;
+  }
+  if (transcript.type === 'plain') {
+    container.innerHTML = `<div style="white-space: pre-wrap; padding: 4px;">${escapeHtml(transcript.text)}</div>`;
+    return;
+  }
+  container.innerHTML = transcript.cues.map((cue, idx) => `
+    <div class="transcript-line" data-video="${videoId}" data-ts="${cue.start}" data-idx="${idx}">
+      <div class="transcript-line-ts">${fmtTime(cue.start)}</div>
+      <div class="transcript-line-text">${escapeHtml(cue.text)}</div>
+    </div>
+  `).join('');
+}
+
+// =========== UTILS ===========
+function fmtTime(seconds) {
+  if (seconds === undefined || seconds === null) return '--:--';
+  const m = Math.floor(seconds / 60);
+  const s = Math.floor(seconds % 60);
+  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
+function fmtDate(iso) {
+  const d = new Date(iso);
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+function uid() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+}
+function escapeHtml(s) {
+  const d = document.createElement('div');
+  d.textContent = s || '';
+  return d.innerHTML;
+}
+
+// =========== RENDER ===========
+function renderVideoCard(v) {
+  const card = document.createElement('div');
+  card.className = 'video-card';
+  card.id = `video-${v.id}`;
+
+  const comments = getVideoComments(v.id);
+  const statusClass = comments.length > 0 ? 'status-done' : 'status-pending';
+  const statusText = comments.length > 0 ? `✓ ${comments.length} comment${comments.length === 1 ? '' : 's'}` : '○ No comments yet';
+
+  if (!v.dropboxUrl) {
+    card.innerHTML = `
+      <div class="video-header">
+        <h3 class="video-title">${v.title}</h3>
+        <span class="status-badge status-pending">URL pending</span>
+      </div>
+    `;
+    return card;
+  }
+
+  const streamUrl = toStreamUrl(v.dropboxUrl);
+
+  card.innerHTML = `
+    <div class="video-header">
+      <h3 class="video-title">${v.title}</h3>
+      <span class="status-badge ${statusClass}">${statusText}</span>
+    </div>
+    <div class="video-layout">
+      <div>
+        <video id="player-${v.id}" controls preload="metadata">
+          <source src="${streamUrl}" type="video/mp4">
+          Your browser does not support the video tag.
+        </video>
+        <div class="dropbox-link">
+          <a href="${v.dropboxUrl}" target="_blank">Open in Dropbox</a>
+        </div>
+      </div>
+      <div class="transcript-panel">
+        <div class="transcript-header">
+          <span>Transcript</span>
+          <span id="transcript-status-${v.id}" style="font-size: 11px; font-weight: 400;"></span>
+        </div>
+        <div class="transcript-body" id="transcript-${v.id}">
+          <div class="transcript-empty">Loading…</div>
+        </div>
+      </div>
+    </div>
+    <div class="comment-panel">
+      <div class="timestamp-capture">
+        <span>Capture at:</span>
+        <span class="timestamp-display" id="ts-display-${v.id}">--:--</span>
+        <button class="capture-btn" id="capture-${v.id}">Capture current time</button>
+      </div>
+      <textarea id="comment-text-${v.id}" placeholder="Your comment for this moment…"></textarea>
+      <button class="save-btn" id="save-${v.id}" disabled>Save comment</button>
+    </div>
+    <div class="comments-list">
+      <h4>All comments on this video</h4>
+      <div id="comments-${v.id}"></div>
+    </div>
+  `;
+  return card;
+}
+
+function renderComments(videoId) {
+  const container = document.getElementById(`comments-${videoId}`);
+  if (!container) return;
+  const comments = getVideoComments(videoId);
+  if (comments.length === 0) {
+    container.innerHTML = '<div style="color: var(--muted); font-size: 13px; padding: 8px 0;">No comments yet.</div>';
+  } else {
+    container.innerHTML = comments.map(c => `
+      <div class="comment-item">
+        <div class="comment-ts" data-video="${videoId}" data-ts="${c.timestamp}">${fmtTime(c.timestamp)}</div>
+        <div class="comment-body">
+          <div>${escapeHtml(c.text)}</div>
+          <div class="comment-meta">${escapeHtml(c.reviewer)} — ${fmtDate(c.date)}</div>
+        </div>
+        <button class="comment-delete" data-video="${videoId}" data-id="${c.id}" title="Delete">×</button>
+      </div>
+    `).join('');
+  }
+  // Update status badge
+  const card = document.getElementById(`video-${videoId}`);
+  if (card) {
+    const badge = card.querySelector('.status-badge');
+    if (badge) {
+      if (comments.length > 0) {
+        badge.className = 'status-badge status-done';
+        badge.textContent = `✓ ${comments.length} comment${comments.length === 1 ? '' : 's'}`;
+      } else {
+        badge.className = 'status-badge status-pending';
+        badge.textContent = '○ No comments yet';
+      }
+    }
+  }
+  updateTotalCount();
+}
+
+function updateTotalCount() {
+  const data = loadComments();
+  let total = 0;
+  Object.values(data).forEach(arr => total += arr.length);
+  document.getElementById('total-count').textContent = `${total} total comment${total === 1 ? '' : 's'} saved`;
+}
+
+// =========== WIRE UP ===========
+function wireCard(v) {
+  if (!v.dropboxUrl) return;
+  const player = document.getElementById(`player-${v.id}`);
+  const captureBtn = document.getElementById(`capture-${v.id}`);
+  const tsDisplay = document.getElementById(`ts-display-${v.id}`);
+  const textarea = document.getElementById(`comment-text-${v.id}`);
+  const saveBtn = document.getElementById(`save-${v.id}`);
+
+  let capturedTs = null;
+
+  captureBtn.addEventListener('click', () => {
+    capturedTs = player.currentTime;
+    tsDisplay.textContent = fmtTime(capturedTs);
+    saveBtn.disabled = !(textarea.value.trim());
+  });
+  textarea.addEventListener('input', () => {
+    saveBtn.disabled = !(textarea.value.trim() && capturedTs !== null);
+  });
+  saveBtn.addEventListener('click', async () => {
+    const text = textarea.value.trim();
+    const reviewer = document.getElementById('reviewer-name').value;
+    if (!text || capturedTs === null) return;
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Saving…';
+    await addComment(v.id, {
+      id: uid(),
+      timestamp: capturedTs,
+      text,
+      reviewer,
+      date: new Date().toISOString(),
+    });
+    textarea.value = '';
+    capturedTs = null;
+    tsDisplay.textContent = '--:--';
+    saveBtn.textContent = 'Save comment';
+    renderComments(v.id);
+  });
+
+  // Highlight the currently playing transcript line
+  player.addEventListener('timeupdate', () => {
+    const tc = transcriptCache[v.id];
+    if (!tc || tc.type !== 'cued') return;
+    const t = player.currentTime;
+    const body = document.getElementById(`transcript-${v.id}`);
+    const activeIdx = tc.cues.findIndex(cue => t >= cue.start && t <= cue.end);
+    body.querySelectorAll('.transcript-line').forEach((el, idx) => {
+      el.classList.toggle('active', idx === activeIdx);
+    });
+  });
+
+  renderComments(v.id);
+
+  // Load transcript async
+  loadTranscript(v.id).then(tc => {
+    renderTranscript(v.id, tc);
+    const statusEl = document.getElementById(`transcript-status-${v.id}`);
+    if (statusEl) {
+      if (tc && tc.type === 'cued') statusEl.textContent = `${tc.cues.length} lines`;
+      else if (tc && tc.type === 'plain') statusEl.textContent = 'plain text';
+      else statusEl.textContent = 'none';
+    }
+  });
+}
+
+// Seek to timestamp when clicking on a comment time or transcript line
+document.addEventListener('click', (e) => {
+  if (e.target.classList.contains('comment-ts') || e.target.classList.contains('transcript-line-ts') || e.target.closest('.transcript-line')) {
+    const el = e.target.classList.contains('comment-ts') || e.target.classList.contains('transcript-line-ts')
+      ? e.target
+      : e.target.closest('.transcript-line');
+    const videoId = el.dataset.video;
+    const ts = parseFloat(el.dataset.ts);
+    const player = document.getElementById(`player-${videoId}`);
+    if (player) {
+      player.currentTime = ts;
+      player.play();
+    }
+  }
+  if (e.target.classList.contains('comment-delete')) {
+    if (!confirm('Delete this comment?')) return;
+    const videoId = e.target.dataset.video;
+    const commentId = e.target.dataset.id;
+    (async () => {
+      await deleteComment(videoId, commentId);
+      renderComments(videoId);
+    })();
+  }
+});
+
+// Export: dump all comments as a formatted text file
+document.getElementById('export-btn').addEventListener('click', () => {
+  const data = loadComments();
+  let out = 'CEO Videos — Comments Export\n';
+  out += `Generated ${new Date().toLocaleString()}\n`;
+  out += '============================================\n\n';
+  VIDEOS.forEach(v => {
+    const comments = (data[v.id] || []).sort((a, b) => a.timestamp - b.timestamp);
+    if (comments.length === 0) return;
+    out += `${v.title}\n`;
+    out += '-'.repeat(v.title.length) + '\n';
+    comments.forEach(c => {
+      out += `  [${fmtTime(c.timestamp)}] ${c.reviewer}: ${c.text}\n`;
+    });
+    out += '\n';
+  });
+  const blob = new Blob([out], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `ceo-video-comments-${new Date().toISOString().slice(0,10)}.txt`;
+  a.click();
+});
+
+document.getElementById('clear-btn').addEventListener('click', () => {
+  if (USE_SHEETS) {
+    alert('Clear all is disabled when connected to the shared Google Sheet. Delete individual rows in the Sheet if needed.');
+    return;
+  }
+  if (!confirm('Clear ALL comments on ALL videos? This cannot be undone.')) return;
+  localStorage.removeItem(STORAGE_KEY);
+  cachedComments = {};
+  VIDEOS.forEach(v => { if (v.dropboxUrl) renderComments(v.id); });
+});
+
+// Export JSON (machine-readable, for migration between origins)
+document.getElementById('export-json-btn').addEventListener('click', () => {
+  const data = loadComments();
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `ceo-video-comments-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+});
+
+// Import JSON — merges with existing comments (does not overwrite)
+document.getElementById('import-json-btn').addEventListener('click', () => {
+  document.getElementById('import-file-input').click();
+});
+document.getElementById('import-file-input').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async () => {
+    try {
+      const imported = JSON.parse(reader.result);
+      let total = 0;
+      for (const arr of Object.values(imported)) total += arr.length;
+      await bulkAddComments(imported);
+      VIDEOS.forEach(v => { if (v.dropboxUrl) renderComments(v.id); });
+      alert(`Imported ${total} comment${total === 1 ? '' : 's'}.`);
+    } catch (err) {
+      alert('Could not parse JSON: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+});
+
+// Warn if opened via file://
+if (location.protocol === 'file:') {
+  document.getElementById('file-protocol-warning').style.display = 'block';
+}
+
+// Refresh button: pull latest from the shared sheet
+document.getElementById('refresh-btn').addEventListener('click', async (e) => {
+  const btn = e.target;
+  btn.disabled = true;
+  btn.textContent = 'Refreshing…';
+  await refreshFromServer();
+  btn.textContent = 'Refresh';
+  btn.disabled = false;
+});
+if (!USE_SHEETS) {
+  document.getElementById('refresh-btn').style.display = 'none';
+}
+
+// INIT
+(async () => {
+  await initStorage();
+  const container = document.getElementById('videos-container');
+  VIDEOS.forEach(v => {
+    const card = renderVideoCard(v);
+    container.appendChild(card);
+    wireCard(v);
+  });
+  updateTotalCount();
+})();
+</script>
+
+</body>
+</html>
